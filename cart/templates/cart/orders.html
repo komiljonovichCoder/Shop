@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <!-- Section-->
+    <header class="bg-dark py-5">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">Orders Page</h1>
+                <p class="lead fw-normal text-white-50 mb-0">Python Standart Backend Django FN6 Ecommerce</p>
+            </div>
+        </div>
+    </header>
+    <!-- Section-->
+
+    <section class="py-5">
+        <h1 class="text-center">Order Histories</h1>
+        <!-- <h1 class="text-center">All Products</h1> -->
+        <div class="container px-4 px-lg-5 mt-5">
+            <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-3 justify-content-center">
+                {% for order in orders %} 
+                <div class="col mb-5">           
+                    <div class="card h-100 w-100">
+                        <div class="card-header">
+                            {{order.order}}
+                        </div>
+                        <ol class="list-group list-group-flush text-center">
+                            {% for item in order.items %}
+                            <li class="list-group-item">
+                                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{item.name}}</a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                    <li><a class="dropdown-item" href="#">Product details</a></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li><a class="dropdown-item" href="#">Name: {{item.name}}</a></li>
+                                    <li><a class="dropdown-item" href="#">Quantity: {{item.quantity}}</a></li>
+                                    <li><a class="dropdown-item" href="#">Price: {{item.price}}</a></li>
+                                    <li><a class="dropdown-item" href="#">All price: {{item.get_total_price}}</a></li>
+                                </ul>
+                            </li>
+                            {% endfor %}
+                            </li><h6 class="d-flex justify-content-center">All product price: {{order.total}}</h6>
+                        </ol>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+
+{% endblock content %}

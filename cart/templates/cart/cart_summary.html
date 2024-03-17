@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <!-- Section-->
+    <header class="bg-dark py-5">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">Cart Summary Page</h1>
+                <p class="lead fw-normal text-white-50 mb-0">Python Standart Backend Django FN6 Ecommerce</p>
+            </div>
+        </div>
+    </header>
+    <!-- Section-->
+    <section class="py-5">
+        <h1 class="text-center">Cart Products</h1>
+        <!-- <h1 class="text-center">All Products</h1> -->
+        <div class="container px-4 px-lg-5 mt-5">
+            <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-3">
+                {% for product in cart_prods %}
+                <div class="col mb-5">
+                    <div class="card h-100">
+                        <!-- Sale badge-->
+                        {% if product.is_sale %}
+                            <div class="badge bg-dark text-white position-absolute" style="top: 0.5rem; right: 0.5rem">Sale</div>
+                            <!-- Product image-->
+                        {% endif %}
+                        <img class="card-img-top" style="height:200px" src="{{product.image_url}}" alt="..." />
+                        <!-- Product details-->
+                        <div class="card-body d-flex justify-content-center">
+                            <div class="text-center">
+                                <!-- Product name-->
+                                <h5 class="fw-bolder">{{product.name}}</h5>
+                                <!-- Product reviews-->
+                                {% if product.is_top %}
+                                    <div class="d-flex justify-content-center small text-warning mb-2">
+                                        <div class="bi-star-fill"></div>
+                                        <div class="bi-star-fill"></div>
+                                        <div class="bi-star-fill"></div>
+                                        <div class="bi-star-fill"></div>
+                                        <div class="bi-star-fill"></div>
+                                    </div>
+                                {% endif %}
+                                <!-- Product price-->
+                                {% if product.sale_price %}
+                                    <p class="m-0">
+                                        Sale price: <span class="text-muted text-decoration-line-through">{{product.sale_price}}</span>
+                                    </p>
+                                {% endif %}
+                                <!-- Product price-->
+                                <pre class="m-0">Price: {{product.price}}</pre>
+                                {% for key, value in prod_count.items %}
+                                    {% if key == product.id|slugify %} 
+                                        {% for k,v in all_price.items %}
+                                            {% if k == product.id|slugify %}                    
+                                                <pre class="m-0 d-flex justify-content-center align-items-center">Quantity: <input class="form-control text-center" id="select{{product.id}}" type="num" value="{{value}}" style="max-width: 4rem" /></pre>
+                                                <p>All {{product.name}}s price: {{v}}</p>                                  
+                                            {% endif %} 
+                                        {% endfor %} 
+                                    {% endif %}   
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <!-- Product actions-->
+                        <div class="card-footer p-4 pt-0 border-top-0 bg-transparent d-flex justify-content-around">
+                            <div class="text-center">
+                                <a type="button" data-index="{{product.id}}" class="btn btn-dark mt-auto" href="{% url 'cart:detail_cart' product.id %}">Detail</a>
+                                <a type="button" data-index="{{product.id}}" class="btn btn-primary mt-auto update-cart" href="{% url 'cart:cart_update' %}">Update</a>
+                                <a type="button" data-index="{{product.id}}" class="btn btn-danger mt-auto delete-cart" href="{% url 'cart:cart_delete' %}">Delete</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Modal Start -->
+        <div class="modal" id="orderModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Order Info</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to order the product?</p>
+                        <ol>
+                            {% for product in cart.get_products %}
+                              <li>
+                                {{product.name}}
+                                {% for key, value in cart.get_quantity.items %}
+                                    <ul>
+                                        {% if key == product.id|slugify %}
+                                            <li>Product id: {{key}}</li>
+                                            <li>Count: {{value}}</li>
+                                            <li>Price: {{product.price}}</li>
+                                            {% for k,v in all_price.items %}
+                                                {% if k == product.id|slugify %}
+                                                    <li>All price: {{v}}</li>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    </ul>
+                                {% endfor %}
+                            </li>
+                            {% endfor %}
+                        </ol>
+                        <h5>All products price: {{total}}</h5>
+                    </div>
+                    <div class="modal-footer">
+                        <a type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</a>
+                        <a type="button" class="btn btn-primary send-product" href="{% url 'cart:order_save' %}">Yes</a>
+                    </div>
+                </div> 
+            </div>
+        </div>
+        <!-- Modal Start -->
+        <h1 class="text-center"><pre>All Products Price: {{total}}</pre></h1>
+        <div class="container d-flex justify-content-center">
+            <a href="{% url 'cart:order_save' %}" class="btn btn-outline-success w-25 pb-5" style="height: 45px; font-size: 28px;" data-bs-toggle="modal" data-bs-target="#orderModal">Order</a>
+        </div>
+    </section>
+
+    <!-- Update Product Quantity -->
+    <script>
+        $(document).on('click', '.update-cart', function(e){
+            e.preventDefault();
+            var product_id = $(this).data('index')
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'cart:cart_update' %}",
+                data: {
+                    product_id: product_id,
+                    prod_count: $('#select' + product_id).val(),
+                    csrfmiddlewaretoken: "{{ csrf_token }}",
+                    action: 'post',
+                },
+                success: function(){
+                    location.reload();
+                },
+                error: function(xhr, err_msg, err){
+                    
+                }
+            });
+        });
+    </script>
+
+    <!-- Delete Product -->
+    <script>
+        $(document).on('click', '.delete-cart', function(e){
+            e.preventDefault();
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'cart:cart_delete' %}",
+                data: {
+                    product_id: $(this).data('index'),
+                    csrfmiddlewaretoken: "{{ csrf_token }}",
+                    action: 'post',
+                },
+                success: function(){
+                    location.reload();
+                },
+                error: function(xhr, err_msg, err){
+                
+                }
+            });
+        });
+    </script>
+
+
+    <!-- Send Message Telegram -->
+    <!-- <script>
+        $(document).on('click', '.send-product', function(e){
+            e.preventDefault();
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'cart:order_save' %}",
+                data: {
+                    csrfmiddlewaretoken: "{{ csrf_token }}",
+                    action: 'post',
+                },
+                success: function(){
+                    location.reload();
+                }
+            });
+        });
+    </script> -->
+
+
+{% endblock content %}
